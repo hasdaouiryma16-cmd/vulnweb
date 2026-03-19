@@ -33,21 +33,23 @@ $search = $_GET['search'] ?? '';
 <body>
 <h1>Annuaire de l'entreprise</h1>
 
-<p>Résultats de recherche pour : <b><?php echo $search; ?></b></p>
+<p>Résultats de recherche pour : <b><?php echo htmlspecialchars($search, ENT_QUOTES, 'UTF-8'); ?></b></p>
 
 <form method="GET">
-    <input type="text" name="search" placeholder="Rechercher un collègue..." value="<?php echo $search; ?>">
+    <input type="text" name="search" placeholder="Rechercher un collègue..." value="<?php echo htmlspecialchars($search, ENT_QUOTES, 'UTF-8'); ?>">
     <button type="submit">Rechercher</button>
 </form>
 <hr>
 
 <?php
 if ($search) {
-    $sql = "SELECT username, role, password FROM users WHERE username = '$search'";
-    echo "<div style='color:gray; font-size:0.8em'>DEBUG SQL: " . $sql . "</div><br>";
+    // Utilisation de requêtes préparées pour éviter l'injection SQL
+    $sql = "SELECT username, role, password FROM users WHERE username = :username";
+    // echo "<div style='color:gray; font-size:0.8em'>DEBUG SQL: " . htmlspecialchars($sql, ENT_QUOTES, 'UTF-8') . "</div><br>";
 
     try {
-        $stmt = $pdo->query($sql);
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['username' => $search]);
 
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -55,7 +57,7 @@ if ($search) {
             echo "<ul>";
             foreach ($results as $row) {
                 echo "<li>";
-                echo "<strong>" . $row['username'] . "</strong> ";
+                echo "<strong>" . htmlspecialchars($row['username'], ENT_QUOTES, 'UTF-8') . "</strong> ";
                 echo "</li>";
             }
             echo "</ul>";
@@ -63,7 +65,7 @@ if ($search) {
             echo "Aucun utilisateur trouvé.";
         }
     } catch (PDOException $e) {
-        echo "Erreur SQL : " . $e->getMessage();
+        echo "Erreur SQL : " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
     }
 }
 ?>
@@ -74,10 +76,10 @@ if ($search) {
     <p>Vérifier la connectivité d'un serveur interne.</p>
 
     <form method="GET">
-        <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
+        <input type="hidden" name="search" value="<?php echo htmlspecialchars($search, ENT_QUOTES, 'UTF-8'); ?>">
 
         <label>IP à tester :</label>
-        <input type="text" name="ip" placeholder="ex: 8.8.8.8" value="<?php echo $_GET['ip'] ?? ''; ?>">
+        <input type="text" name="ip" placeholder="ex: 8.8.8.8" value="<?php echo htmlspecialchars($_GET['ip'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
         <button type="submit">Pinger</button>
     </form>
 
@@ -86,10 +88,15 @@ if ($search) {
         $ip = $_GET['ip'];
 
         echo "<pre>";
-        echo "Test de ping sur : " . $ip . "\n";
+        echo "Test de ping sur : " . htmlspecialchars($ip, ENT_QUOTES, 'UTF-8') . "\n";
         echo "--------------------------\n";
 
-        system("ping -c 2 " . $ip);
+        // Validation de l'IP et utilisation de escapeshellarg pour éviter l'injection de commande
+        if (filter_var($ip, FILTER_VALIDATE_IP)) {
+            system("ping -c 2 " . escapeshellarg($ip));
+        } else {
+            echo "Erreur : Adresse IP invalide.";
+        }
 
         echo "</pre>";
     }
