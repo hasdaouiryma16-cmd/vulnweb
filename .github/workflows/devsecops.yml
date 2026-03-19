@@ -71,22 +71,22 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
-          scan-ref: './src' # Dossier contenant le composer.lock
+          scan-ref: './src'
           format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: 1
           trivyignores: .trivyignore
-      # ------------------------------------------------------------------
-      # ÉTAPE 5 : INFRASTRUCTURE (Trivy Image)
-      # ------------------------------------------------------------------
-      infra-analysis:
-      runs-on: ubuntu-latest
-      steps:
+
+  # ------------------------------------------------------------------
+  # ÉTAPE 5 : INFRASTRUCTURE (Trivy Image)
+  # ------------------------------------------------------------------
+  infra-analysis:
+    runs-on: ubuntu-latest
+    steps:
       - name: Récupération du code
         uses: actions/checkout@v6
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v4
-        # Il faut d'abord construire l'image pour pouvoir la scanner
       - name: Build image (cached)
         uses: docker/build-push-action@v6
         with:
@@ -95,7 +95,6 @@ jobs:
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-        # Scan de l'image construite
       - name: Scan Infrastructure (Trivy Image)
         uses: aquasecurity/trivy-action@master
         with:
@@ -115,15 +114,13 @@ jobs:
     steps:
       - name: Récupération du code
         uses: actions/checkout@v4
-
       - name: Démarrage de la stack Docker
         run: |
           cd src
           docker compose up -d
-          sleep 10  # attendre que l'appli démarre
-
+          sleep 10
       - name: Scan DAST (ZAP Baseline)
         uses: zaproxy/action-baseline@v0.12.0
         with:
           target: 'http://localhost:8080'
-          fail_action: true  
+          fail_action: true
