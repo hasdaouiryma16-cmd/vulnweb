@@ -15,7 +15,8 @@ RUN apk add --no-cache \
 # Configuration d'Apache pour PHP 8.4
 # Alpine installe php84, on s'assure qu'Apache charge le module
 RUN sed -i 's#AllowOverride None#AllowOverride All#' /etc/apache2/httpd.conf && \
-    sed -i 's#^# #g' /etc/apache2/httpd.conf && \
+    echo "ServerTokens Prod" >> /etc/apache2/httpd.conf && \
+    echo "ServerSignature Off" >> /etc/apache2/httpd.conf && \
     mkdir -p /run/apache2
 
 # Redirection des logs Apache vers stdout/stderr pour Docker
