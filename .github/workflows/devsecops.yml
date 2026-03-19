@@ -115,14 +115,7 @@ jobs:
       - name: Récupération du code
         uses: actions/checkout@v4
       - name: Démarrage de la stack Docker
-        run: |
-          # Création du fichier .env nécessaire pour docker-compose.yml
-          echo "DB_ROOT_PASSWORD=rootpassword" > .env
-          echo "DB_NAME=myapp" >> .env
-          echo "DB_USER=appuser" >> .env
-          echo "DB_PASSWORD=apppassword" >> .env
-          echo "DB_HOST=db" >> .env
-          
+        run: |         
           # Lancement de la stack (depuis la racine car docker-compose.yml s'y trouve)
           docker compose up -d
           
