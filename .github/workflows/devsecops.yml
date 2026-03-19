@@ -73,14 +73,15 @@ jobs:
           scan-type: 'fs'
           scan-ref: './src' # Dossier contenant le composer.lock
           format: 'table'
-          severity: 'CRITICAL'
+          severity: 'CRITICAL,HIGH'
           exit-code: 1
-  # ------------------------------------------------------------------
-  # ÉTAPE 5 : INFRASTRUCTURE (Trivy Image)
-  # ------------------------------------------------------------------
-  infra-analysis:
-    runs-on: ubuntu-latest
-    steps:
+          trivyignores: .trivyignore
+      # ------------------------------------------------------------------
+      # ÉTAPE 5 : INFRASTRUCTURE (Trivy Image)
+      # ------------------------------------------------------------------
+      infra-analysis:
+      runs-on: ubuntu-latest
+      steps:
       - name: Récupération du code
         uses: actions/checkout@v6
       - name: Setup Docker Buildx
@@ -101,8 +102,10 @@ jobs:
           scan-type: 'image'
           image-ref: 'devops-web:${{ github.sha }}'
           format: 'table'
-          severity: 'CRITICAL'
+          severity: 'CRITICAL,HIGH'
           exit-code: 1
+          trivyignores: .trivyignore
+
   # ----------------------------------------------------------------
   # ÉTAPE 6 : DAST (ZAP Scan)
   # ----------------------------------------------------------------
