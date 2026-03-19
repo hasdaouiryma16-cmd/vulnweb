@@ -111,11 +111,24 @@ jobs:
   dast-analysis:
     needs: [ infra-analysis ]
     runs-on: ubuntu-latest
+    env:
+      DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_HOST: ${{ secrets.DB_HOST }}
     steps:
       - name: Récupération du code
         uses: actions/checkout@v4
       - name: Démarrage de la stack Docker
         run: |         
+          # Création du fichier .env nécessaire pour docker-compose.yml
+          echo "DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}" > .env
+          echo "DB_NAME=${DB_NAME}" >> .env
+          echo "DB_USER=${DB_USER}" >> .env
+          echo "DB_PASSWORD=${DB_PASSWORD}" >> .env
+          echo "DB_HOST=${DB_HOST}" >> .env
+
           # Lancement de la stack (depuis la racine car docker-compose.yml s'y trouve)
           docker compose up -d
           
