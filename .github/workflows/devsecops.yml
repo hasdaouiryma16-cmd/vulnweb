@@ -126,6 +126,9 @@ jobs:
           # Lancement de la stack (depuis la racine car docker-compose.yml s'y trouve)
           docker compose up -d
           
+          # Donner les permissions d'écriture pour le conteneur ZAP (utilisateur non-root)
+          chmod -R 777 .
+          
           # Attente plus longue pour s'assurer que MariaDB est prête
           sleep 20
       - name: Scan DAST (ZAP Baseline)
