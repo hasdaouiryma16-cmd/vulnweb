@@ -1,0 +1,7 @@
+### Composer template
+composer.phar
+/vendor/
+.idea
+.env
+.git
+.github

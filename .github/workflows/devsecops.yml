@@ -2,9 +2,9 @@ name: Pipeline DevSecOps (Cours)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main","good" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main","good" ]
 
 jobs:
 
@@ -103,11 +103,11 @@ jobs:
           format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: 1
-# ----------------------------------------------------------------
+  # ----------------------------------------------------------------
   # ÉTAPE 6 : DAST (ZAP Scan)
   # ----------------------------------------------------------------
   dast-analysis:
-    needs: [infra-analysis]
+    needs: [ infra-analysis ]
     runs-on: ubuntu-latest
     steps:
       - name: Récupération du code
