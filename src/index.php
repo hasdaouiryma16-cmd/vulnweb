@@ -46,7 +46,6 @@ $search = $_GET['search'] ?? '';
 if ($search) {
     // Utilisation de requêtes préparées pour éviter l'injection SQL
     $sql = "SELECT username, role, password FROM users WHERE username = :username";
-    // echo "<div style='color:gray; font-size:0.8em'>DEBUG SQL: " . htmlspecialchars($sql, ENT_QUOTES, 'UTF-8') . "</div><br>";
 
     try {
         $stmt = $pdo->prepare($sql);
