@@ -1,0 +1,126 @@
+name: Pipeline DevSecOps (Cours)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  # ----------------------------------------------------------------
+  # ÉTAPE 1 : SECRETS (TruffleHog)
+  # ----------------------------------------------------------------
+  check-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Scan des Secrets (TruffleHog)
+        run: |
+          docker run --rm -v "$PWD":/pwd \
+            trufflesecurity/trufflehog:latest \
+            filesystem /pwd --fail
+  # ------------------------------------------------------------------
+  # ÉTAPE 2 : LINTER (PHPCS)
+  # ------------------------------------------------------------------
+  check-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v6
+      - name: Linter PHP (PHP_CodeSniffer)
+        run: |
+          docker run --rm -v "$(pwd)/src":/data cytopia/phpcs --standard=PSR12 --ignore=vendor/* /data
+
+  # ------------------------------------------------------------------
+  # ÉTAPE 3 : SAST (Semgrep)
+  # ------------------------------------------------------------------
+  sast-analysis:
+    needs: [ check-secrets, check-quality ] # On attend que la qualité soit OK
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v6
+      # Commande adaptée (semgrep scan --config=p/php)
+      - name: Scan SAST (Semgrep)
+        run: semgrep scan --config=p/php --error --verbose
+
+
+  # ------------------------------------------------------------------
+  # ÉTAPE 4 : SCA (Trivy FS)
+  # ------------------------------------------------------------------
+  sca-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v6
+      - name: Cache Composer
+        uses: actions/cache@v5
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('src/composer.lock') }}
+      - name: Installation des dépendances (Génération du Lock file)
+        run: docker run --rm -v "$PWD/src":/app composer install --no-dev --prefer-dist
+      - name: Scan SCA (Trivy FS)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: './src' # Dossier contenant le composer.lock
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: 1
+  # ------------------------------------------------------------------
+  # ÉTAPE 5 : INFRASTRUCTURE (Trivy Image)
+  # ------------------------------------------------------------------
+  infra-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v6
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v4
+        # Il faut d'abord construire l'image pour pouvoir la scanner
+      - name: Build image (cached)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./src
+          tags: devops-web:${{ github.sha }}
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+        # Scan de l'image construite
+      - name: Scan Infrastructure (Trivy Image)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'image'
+          image-ref: 'devops-web:${{ github.sha }}'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: 1
+# ----------------------------------------------------------------
+  # ÉTAPE 6 : DAST (ZAP Scan)
+  # ----------------------------------------------------------------
+  dast-analysis:
+    needs: [infra-analysis]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      - name: Démarrage de la stack Docker
+        run: |
+          cd src
+          docker compose up -d
+          sleep 10  # attendre que l'appli démarre
+
+      - name: Scan DAST (ZAP Baseline)
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: 'http://localhost:8080'
+          fail_action: true  
