@@ -36,7 +36,8 @@ $search = $_GET['search'] ?? '';
 <p>Résultats de recherche pour : <b><?php echo htmlspecialchars($search, ENT_QUOTES, 'UTF-8'); ?></b></p>
 
 <form method="GET">
-    <input type="text" name="search" placeholder="Rechercher un collègue..." value="<?php echo htmlspecialchars($search, ENT_QUOTES, 'UTF-8'); ?>">
+    <input type="text" name="search" placeholder="Rechercher un collègue..."
+           value="<?php echo htmlspecialchars($search, ENT_QUOTES, 'UTF-8'); ?>">
     <button type="submit">Rechercher</button>
 </form>
 <hr>
@@ -79,7 +80,8 @@ if ($search) {
         <input type="hidden" name="search" value="<?php echo htmlspecialchars($search, ENT_QUOTES, 'UTF-8'); ?>">
 
         <label>IP à tester :</label>
-        <input type="text" name="ip" placeholder="ex: 8.8.8.8" value="<?php echo htmlspecialchars($_GET['ip'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+        <input type="text" name="ip" placeholder="ex: 8.8.8.8"
+               value="<?php echo htmlspecialchars($_GET['ip'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
         <button type="submit">Pinger</button>
     </form>
 
