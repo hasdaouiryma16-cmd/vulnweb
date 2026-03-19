@@ -1,0 +1,3 @@
+# Persistent vulnerabilities in php:8.4-apache-bookworm (no fix available in Debian repositories yet)
+CVE-2025-7458
+CVE-2023-45853
