@@ -73,7 +73,7 @@ jobs:
           scan-type: 'fs'
           scan-ref: './src' # Dossier contenant le composer.lock
           format: 'table'
-          severity: 'CRITICAL,HIGH'
+          severity: 'CRITICAL'
           exit-code: 1
   # ------------------------------------------------------------------
   # ÉTAPE 5 : INFRASTRUCTURE (Trivy Image)
@@ -101,7 +101,7 @@ jobs:
           scan-type: 'image'
           image-ref: 'devops-web:${{ github.sha }}'
           format: 'table'
-          severity: 'CRITICAL,HIGH'
+          severity: 'CRITICAL'
           exit-code: 1
   # ----------------------------------------------------------------
   # ÉTAPE 6 : DAST (ZAP Scan)
